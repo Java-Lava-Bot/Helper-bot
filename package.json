@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/PhillsPhanbh3/Java-Lava-V2#readme",
   "dependencies": {
-    "discord.js": "^14.26.0",
-    "dotenv": "^17.4.0",
-    "mongoose": "^9.3.3",
+    "discord.js": "^14.26.3",
+    "dotenv": "^17.4.2",
+    "mongoose": "^9.4.1",
     "winston": "^3.19.0"
   }
 }

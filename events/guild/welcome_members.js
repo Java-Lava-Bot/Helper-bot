@@ -1,6 +1,6 @@
 const { Events, EmbedBuilder } = require("discord.js");
-const { logger } = require("../../../utils/logger");
-const { LogError } = require("../../../utils/LogError");
+const { logger } = require("../../utils/logger");
+const { LogError } = require("../../utils/LogError");
 
 const WELCOME_CHANNEL_ID = "1482862210165510226";
 

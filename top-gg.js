@@ -23,6 +23,9 @@ module.exports = function registerTopGgWebhook(client) {
 
   app.get("/", (req, res) => res.status(200).send("OK"));
 
+  // Optional: makes visiting the webhook URL in a browser return something useful
+  app.get("/topgg/vote", (req, res) => res.status(200).send("OK (POST only)"));
+
   app.post(
     "/topgg/vote",
     webhook.listener(async (vote) => {

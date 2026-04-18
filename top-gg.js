@@ -28,8 +28,24 @@ module.exports = function registerTopGgWebhook(client) {
 
   app.post(
     "/topgg/vote",
+    // DEBUG: proves top.gg is hitting your endpoint + whether it sent an Authorization header
+    (req, res, next) => {
+      if (logger?.info)
+        logger.info(
+          `[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`
+        );
+      else
+        console.log(
+          `[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`
+        );
+      next();
+    },
     webhook.listener(async (vote) => {
       try {
+        // DEBUG: proves webhook signature/auth was verified and payload was parsed
+        if (logger?.info) logger.info(`[top.gg] VERIFIED vote payload user=${vote.user} bot=${vote.bot} type=${vote.type}`);
+        else console.log(`[top.gg] VERIFIED vote payload user=${vote.user} bot=${vote.bot} type=${vote.type}`);
+
         const botId = vote.bot || TOPGG_BOT_ID || client.user?.id;
         if (!botId) throw new Error("Unable to determine botId for vote URL");
 
@@ -56,6 +72,7 @@ module.exports = function registerTopGgWebhook(client) {
       } catch (err) {
         if (logger?.error) logger.error(err);
         else console.error(err);
+        throw err; // important so top.gg retries on failures
       }
     })
   );

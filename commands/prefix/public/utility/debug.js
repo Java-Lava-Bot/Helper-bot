@@ -5,9 +5,9 @@ const { LogError } = require('../../../../utils/LogError');
 const { supportinvite } = require('../../../../utils/support-invite');
 
 module.exports = {
-    name: 'helper-debug',
-    description: 'Check bot performance, latency, and memory usage.',
-    aliases: ['hdebug', 'debughelper'],
+    Name: 'helper-debug',
+    Description: 'Check bot performance, latency, and memory usage.',
+    Aliases: ['hdebug', 'debughelper'],
     async execute(message, args) {
         try {
             // Check permissions

@@ -1,10 +1,10 @@
 const { PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
-  name: "helper-ping",
-  description: "Replies with Pong!",
-  settings: { isDeveloperOnly: false },
-  permissions: {
+  Name: "helper-ping",
+  Description: "Replies with Pong!",
+  Settings: { isDeveloperOnly: false },
+  Permissions: {
     user: [PermissionFlagsBits.SendMessages],
     bot: [PermissionFlagsBits.ReadMessageHistory],
   },

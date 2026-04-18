@@ -55,7 +55,13 @@ module.exports = function registerTopGgWebhook(client) {
 
   app.post(
     "/topgg/vote",
-    // DEBUG: proves top.gg is hitting your endpoint + shows which auth header (if any) is present
+    // DEBUG 1: log ALL headers exactly as Express receives them (temporary)
+    (req, res, next) => {
+      if (logger?.info) logger.info(`[top.gg] HEADERS RAW: ${JSON.stringify(req.headers)}`);
+      else console.log("[top.gg] HEADERS RAW:", req.headers);
+      next();
+    },
+    // DEBUG 2: keep your existing targeted header/auth logging
     (req, res, next) => {
       const auth =
         req.get("authorization") ||
@@ -66,7 +72,6 @@ module.exports = function registerTopGgWebhook(client) {
         req.get("X-Topgg-Authorization") ||
         req.get("x-webhook-auth") ||
         req.get("X-Webhook-Auth") ||
-        // FIX: also check common signature headers (some webhook setups use these instead of Authorization)
         req.get("x-signature") ||
         req.get("X-Signature") ||
         req.get("x-hub-signature") ||
@@ -79,7 +84,6 @@ module.exports = function registerTopGgWebhook(client) {
         "x-authorization": req.get("x-authorization"),
         "x-topgg-authorization": req.get("x-topgg-authorization"),
         "x-webhook-auth": req.get("x-webhook-auth"),
-        // FIX: log signature headers too so we can see what top.gg is actually sending
         "x-signature": req.get("x-signature"),
         "x-hub-signature": req.get("x-hub-signature"),
         "x-hub-signature-256": req.get("x-hub-signature-256"),
@@ -103,7 +107,6 @@ module.exports = function registerTopGgWebhook(client) {
     async (req, res, next) => {
       try {
         // NOTE: This still ONLY verifies Authorization-based auth via @top-gg/sdk.
-        // If top.gg is not sending Authorization, this will continue to 401 until top.gg is fixed.
         await verifiedVoteHandler(req, res, next);
 
         if (!res.headersSent) res.status(200).send("OK");

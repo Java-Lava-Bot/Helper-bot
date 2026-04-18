@@ -1,4 +1,4 @@
-const Topgg = require("@top-gg/sdk");
+const crypto = require("crypto");
 const express = require("express");
 require("dotenv/config");
 
@@ -8,121 +8,111 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("
 const VOTE_CHANNEL_ID = "1441800425992097895";
 const PORT = 8080;
 
+function timingSafeEqual(a, b) {
+  const ab = Buffer.from(a || "", "utf8");
+  const bb = Buffer.from(b || "", "utf8");
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+
+/**
+ * Parses: "t=1776544835,v1=abcdef..."
+ */
+function parseTopggSignature(sigHeader) {
+  if (!sigHeader || typeof sigHeader !== "string") return null;
+  const parts = sigHeader.split(",").map((p) => p.trim());
+  const out = {};
+  for (const p of parts) {
+    const [k, v] = p.split("=");
+    if (k && v) out[k] = v;
+  }
+  if (!out.t || !out.v1) return null;
+  return { t: out.t, v1: out.v1 };
+}
+
 module.exports = function registerTopGgWebhook(client) {
   if (!client) throw new Error("registerTopGgWebhook(client) requires a discord.js Client");
 
-  const TOPGG_AUTH = process.env.TOPGG_WEBHOOK_AUTH; // required
+  const TOPGG_SECRET = process.env.TOPGG_WEBHOOK_AUTH; // your whs_...
   const TOPGG_BOT_ID = process.env.TOPGG_BOT_ID; // recommended
 
-  if (!TOPGG_AUTH) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
+  if (!TOPGG_SECRET) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
 
   const app = express();
-  app.use(express.json());
 
-  const webhook = new Topgg.Webhook(TOPGG_AUTH);
-
-  app.get("/", (req, res) => res.status(200).send("OK"));
-
-  // Optional: makes visiting the webhook URL in a browser return something useful
-  app.get("/topgg/vote", (req, res) => res.status(200).send("OK (POST only)"));
-
-  // Create the verified vote handler once (so we can still access req/res outside)
-  const verifiedVoteHandler = webhook.listener(async (vote) => {
-    const botId = vote.bot || TOPGG_BOT_ID || client.user?.id;
-    if (!botId) throw new Error("Unable to determine botId for vote URL");
-
-    const voteUrl = `https://top.gg/bot/${botId}/vote`;
-
-    if (logger?.info) logger.info(`User ${vote.user} just voted!`);
-    else console.log(`User ${vote.user} just voted!`);
-
-    const embed = new EmbedBuilder()
-      .setColor(0x57f287)
-      .setDescription(`**<@${vote.user}> has upvoted Java Lava!**\n\nThanks for voting!`)
-      .setTimestamp();
-
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel("Upvote Java Lava").setURL(voteUrl)
-    );
-
-    const channel = await client.channels.fetch(VOTE_CHANNEL_ID);
-    if (!channel || !channel.isTextBased()) {
-      throw new Error(`Channel ${VOTE_CHANNEL_ID} not found or not text-based`);
-    }
-
-    await channel.send({ embeds: [embed], components: [row] });
-  });
-
-  app.post(
-    "/topgg/vote",
-    // DEBUG 1: log ALL headers exactly as Express receives them (temporary)
-    (req, res, next) => {
-      if (logger?.info) logger.info(`[top.gg] HEADERS RAW: ${JSON.stringify(req.headers)}`);
-      else console.log("[top.gg] HEADERS RAW:", req.headers);
-      next();
-    },
-    // DEBUG 2: keep your existing targeted header/auth logging
-    (req, res, next) => {
-      const auth =
-        req.get("authorization") ||
-        req.get("Authorization") ||
-        req.get("x-authorization") ||
-        req.get("X-Authorization") ||
-        req.get("x-topgg-authorization") ||
-        req.get("X-Topgg-Authorization") ||
-        req.get("x-webhook-auth") ||
-        req.get("X-Webhook-Auth") ||
-        req.get("x-signature") ||
-        req.get("X-Signature") ||
-        req.get("x-hub-signature") ||
-        req.get("X-Hub-Signature") ||
-        req.get("x-hub-signature-256") ||
-        req.get("X-Hub-Signature-256");
-
-      const headerDump = {
-        authorization: req.get("authorization"),
-        "x-authorization": req.get("x-authorization"),
-        "x-topgg-authorization": req.get("x-topgg-authorization"),
-        "x-webhook-auth": req.get("x-webhook-auth"),
-        "x-signature": req.get("x-signature"),
-        "x-hub-signature": req.get("x-hub-signature"),
-        "x-hub-signature-256": req.get("x-hub-signature-256"),
-        "user-agent": req.get("user-agent"),
-        "content-type": req.get("content-type"),
-      };
-
-      if (logger?.info) {
-        logger.info(
-          `[top.gg] HIT /topgg/vote ip=${req.ip} authHeader=${auth ? "yes" : "no"} headers=${JSON.stringify(headerDump)}`
-        );
-      } else {
-        console.log(
-          `[top.gg] HIT /topgg/vote ip=${req.ip} authHeader=${auth ? "yes" : "no"} headers=${JSON.stringify(headerDump)}`
-        );
-      }
-
-      next();
-    },
-    // Wrapper so top.gg "Send test" gets a clear status code/body
-    async (req, res, next) => {
-      try {
-        // NOTE: This still ONLY verifies Authorization-based auth via @top-gg/sdk.
-        await verifiedVoteHandler(req, res, next);
-
-        if (!res.headersSent) res.status(200).send("OK");
-      } catch (err) {
-        next(err);
-      }
-    }
+  // IMPORTANT: capture raw body for HMAC verification
+  app.use(
+    express.json({
+      verify: (req, res, buf) => {
+        req.rawBody = buf; // Buffer
+      },
+    })
   );
 
-  // Error-handling middleware (must be AFTER routes)
-  app.use((err, req, res, next) => {
-    if (logger?.error) logger.error(`[top.gg] Express error: ${err?.message || err}`);
-    else console.error("[top.gg] Express error:", err);
+  app.get("/", (req, res) => res.status(200).send("OK"));
+  app.get("/topgg/vote", (req, res) => res.status(200).send("OK (POST only)"));
 
-    if (res.headersSent) return;
-    res.status(500).send("Internal error");
+  app.post("/topgg/vote", async (req, res) => {
+    try {
+      // 1) Grab signature header
+      const sigHeader = req.get("x-topgg-signature");
+      const parsed = parseTopggSignature(sigHeader);
+
+      if (!parsed) {
+        if (logger?.warn) logger.warn("[top.gg] Missing/invalid x-topgg-signature header");
+        else console.warn("[top.gg] Missing/invalid x-topgg-signature header");
+        return res.sendStatus(401);
+      }
+
+      // 2) Compute expected HMAC
+      // Assumption (based on the header format): HMAC-SHA256(secret, `${t}.${rawBody}`)
+      const raw = req.rawBody || Buffer.from(JSON.stringify(req.body || {}), "utf8");
+      const signedPayload = Buffer.concat([Buffer.from(`${parsed.t}.`, "utf8"), raw]);
+
+      const expected = crypto.createHmac("sha256", TOPGG_SECRET).update(signedPayload).digest("hex");
+
+      if (!timingSafeEqual(expected, parsed.v1)) {
+        if (logger?.warn) logger.warn("[top.gg] Signature mismatch");
+        else console.warn("[top.gg] Signature mismatch");
+        return res.sendStatus(401);
+      }
+
+      // 3) Verified
+      const vote = req.body;
+
+      if (logger?.info) logger.info(`[top.gg] VERIFIED (signature) vote payload: ${JSON.stringify(vote)}`);
+      else console.log("[top.gg] VERIFIED (signature) vote payload:", vote);
+
+      const userId = vote?.user;
+      const botId = vote?.bot || TOPGG_BOT_ID || client.user?.id;
+
+      if (!userId) throw new Error("Missing vote.user in payload");
+      if (!botId) throw new Error("Unable to determine botId for vote URL");
+
+      const voteUrl = `https://top.gg/bot/${botId}/vote`;
+
+      const embed = new EmbedBuilder()
+        .setColor(0x57f287)
+        .setDescription(`**<@${userId}> has upvoted Java Lava!**\n\nThanks for voting!`)
+        .setTimestamp();
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel("Upvote Java Lava").setURL(voteUrl)
+      );
+
+      const channel = await client.channels.fetch(VOTE_CHANNEL_ID);
+      if (!channel || !channel.isTextBased()) {
+        throw new Error(`Channel ${VOTE_CHANNEL_ID} not found or not text-based`);
+      }
+
+      await channel.send({ embeds: [embed], components: [row] });
+
+      return res.sendStatus(200);
+    } catch (err) {
+      if (logger?.error) logger.error(err);
+      else console.error(err);
+      return res.sendStatus(500);
+    }
   });
 
   app.listen(PORT, () => {

@@ -32,7 +32,8 @@ module.exports = function registerTopGgWebhook(client) {
 
         const voteUrl = `https://top.gg/bot/${botId}/vote`;
 
-        logger.log?.(`User ${vote.user} just voted!`) ?? console.log(`User ${vote.user} just voted!`);
+        if (logger?.info) logger.info(`User ${vote.user} just voted!`);
+        else console.log(`User ${vote.user} just voted!`);
 
         const embed = new EmbedBuilder()
           .setColor(0x57f287)
@@ -50,13 +51,14 @@ module.exports = function registerTopGgWebhook(client) {
 
         await channel.send({ embeds: [embed], components: [row] });
       } catch (err) {
-        logger.error?.(err);
-        throw err; // top.gg retries
+        if (logger?.error) logger.error(err);
+        else console.error(err);
       }
     })
   );
 
   app.listen(PORT, () => {
-    logger.log?.(`[top.gg] Listening on port ${PORT} (POST /topgg/vote)`) ?? console.log(`[top.gg] Listening on port ${PORT}`);
+    if (logger?.info) logger.info(`[top.gg] Listening on port 8080 (POST /topgg/vote)`);
+    else console.log(`[top.gg] Listening on port 8080 (POST /topgg/vote)`);
   });
 };

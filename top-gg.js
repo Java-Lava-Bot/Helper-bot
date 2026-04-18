@@ -27,11 +27,28 @@ function parseTopggSignature(sigHeader) {
   return { t: out.t, v1: out.v1 };
 }
 
+// FIX: broaden extraction so real vote events (which may differ from webhook.test) still work
 function normalizeTopggEvent(body, fallbackBotId) {
-  // New envelope format (what your logs show)
+  // New envelope format
   if (body && body.data) {
-    const userId = body.data?.user?.platform_id || body.data?.user?.id; // platform_id is Discord user id
-    const botId = body.data?.project?.platform_id || fallbackBotId;
+    const d = body.data;
+
+    const userId =
+      d?.user?.platform_id ||
+      d?.user?.id ||
+      d?.voter?.platform_id ||
+      d?.voter?.id ||
+      d?.member?.platform_id ||
+      d?.member?.id;
+
+    const botId =
+      d?.project?.platform_id ||
+      d?.project?.id ||
+      d?.bot?.platform_id ||
+      d?.bot?.id ||
+      body?.bot ||
+      fallbackBotId;
+
     return { eventType: body.type, userId, botId, raw: body };
   }
 
@@ -93,25 +110,10 @@ module.exports = function registerTopGgWebhook(client) {
         );
       else console.log(`[top.gg] VERIFIED (signature)`, normalized);
 
-      // FIX: on webhook.test, send an embed so you can confirm end-to-end
+      // FIX: webhook.test is NOT a vote, so do NOT post the "vote" embed (or any embed).
+      // Just acknowledge it so top.gg shows success.
       if (normalized.eventType === "webhook.test") {
-        const testEmbed = new EmbedBuilder()
-          .setColor(0xfee75c)
-          .setTitle("top.gg webhook test received")
-          .setDescription(
-            `Verified signature OK.\n\nUserId: ${
-              normalized.userId ? `<@${normalized.userId}>` : "`unknown`"
-            }\nBotId: \`${normalized.botId || "unknown"}\``
-          )
-          .setTimestamp();
-
-        const channel = await client.channels.fetch(VOTE_CHANNEL_ID);
-        if (!channel || !channel.isTextBased()) {
-          throw new Error(`Channel ${VOTE_CHANNEL_ID} not found or not text-based`);
-        }
-
-        await channel.send({ embeds: [testEmbed] });
-        return res.status(200).send("OK (test received + posted)");
+        return res.status(200).send("OK (test received)");
       }
 
       const userId = normalized.userId;

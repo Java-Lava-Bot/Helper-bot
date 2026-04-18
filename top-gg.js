@@ -11,7 +11,7 @@ const PORT = 8080;
 module.exports = function registerTopGgWebhook(client) {
   if (!client) throw new Error("registerTopGgWebhook(client) requires a discord.js Client");
 
-  const TOPGG_AUTH = process.env.TOPGG_WEBHOOK_AUTH;
+  const TOPGG_AUTH = process.env.TOPGG_WEBHOOK_AUTH; // required
   const TOPGG_BOT_ID = process.env.TOPGG_BOT_ID; // recommended
 
   if (!TOPGG_AUTH) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
@@ -65,13 +65,24 @@ module.exports = function registerTopGgWebhook(client) {
         req.get("x-topgg-authorization") ||
         req.get("X-Topgg-Authorization") ||
         req.get("x-webhook-auth") ||
-        req.get("X-Webhook-Auth");
+        req.get("X-Webhook-Auth") ||
+        // FIX: also check common signature headers (some webhook setups use these instead of Authorization)
+        req.get("x-signature") ||
+        req.get("X-Signature") ||
+        req.get("x-hub-signature") ||
+        req.get("X-Hub-Signature") ||
+        req.get("x-hub-signature-256") ||
+        req.get("X-Hub-Signature-256");
 
       const headerDump = {
         authorization: req.get("authorization"),
         "x-authorization": req.get("x-authorization"),
         "x-topgg-authorization": req.get("x-topgg-authorization"),
         "x-webhook-auth": req.get("x-webhook-auth"),
+        // FIX: log signature headers too so we can see what top.gg is actually sending
+        "x-signature": req.get("x-signature"),
+        "x-hub-signature": req.get("x-hub-signature"),
+        "x-hub-signature-256": req.get("x-hub-signature-256"),
         "user-agent": req.get("user-agent"),
         "content-type": req.get("content-type"),
       };
@@ -91,10 +102,10 @@ module.exports = function registerTopGgWebhook(client) {
     // Wrapper so top.gg "Send test" gets a clear status code/body
     async (req, res, next) => {
       try {
-        // this will 401 automatically if Authorization is missing/wrong
+        // NOTE: This still ONLY verifies Authorization-based auth via @top-gg/sdk.
+        // If top.gg is not sending Authorization, this will continue to 401 until top.gg is fixed.
         await verifiedVoteHandler(req, res, next);
 
-        // If we got here, it verified + ran successfully
         if (!res.headersSent) res.status(200).send("OK");
       } catch (err) {
         next(err);

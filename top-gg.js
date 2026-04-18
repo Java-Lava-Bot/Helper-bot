@@ -5,7 +5,7 @@ require("dotenv/config");
 const { logger } = require("./utils/logger");
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
-const VOTE_CHANNEL_ID = proccess.env.VOTE_CHANNEL_ID; // required
+const VOTE_CHANNEL_ID = "1441800425992097895";
 const PORT = 8080;
 
 module.exports = function registerTopGgWebhook(client) {

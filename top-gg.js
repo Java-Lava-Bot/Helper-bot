@@ -15,9 +15,6 @@ function timingSafeEqual(a, b) {
   return crypto.timingSafeEqual(ab, bb);
 }
 
-/**
- * Parses: "t=1776544835,v1=abcdef..."
- */
 function parseTopggSignature(sigHeader) {
   if (!sigHeader || typeof sigHeader !== "string") return null;
   const parts = sigHeader.split(",").map((p) => p.trim());
@@ -30,17 +27,31 @@ function parseTopggSignature(sigHeader) {
   return { t: out.t, v1: out.v1 };
 }
 
+function normalizeTopggEvent(body, fallbackBotId) {
+  // New envelope format (what your logs show)
+  if (body && body.data) {
+    const userId = body.data?.user?.platform_id || body.data?.user?.id; // platform_id is Discord user id
+    const botId = body.data?.project?.platform_id || fallbackBotId;
+    return { eventType: body.type, userId, botId, raw: body };
+  }
+
+  // Old format (topgg sdk examples): { user, bot, type }
+  const userId = body?.user;
+  const botId = body?.bot || fallbackBotId;
+  return { eventType: body?.type, userId, botId, raw: body };
+}
+
 module.exports = function registerTopGgWebhook(client) {
   if (!client) throw new Error("registerTopGgWebhook(client) requires a discord.js Client");
 
-  const TOPGG_SECRET = process.env.TOPGG_WEBHOOK_AUTH; // your whs_...
+  const TOPGG_SECRET = process.env.TOPGG_WEBHOOK_AUTH; // whs_...
   const TOPGG_BOT_ID = process.env.TOPGG_BOT_ID; // recommended
 
   if (!TOPGG_SECRET) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
 
   const app = express();
 
-  // IMPORTANT: capture raw body for HMAC verification
+  // capture raw body for HMAC verification
   app.use(
     express.json({
       verify: (req, res, buf) => {
@@ -54,21 +65,17 @@ module.exports = function registerTopGgWebhook(client) {
 
   app.post("/topgg/vote", async (req, res) => {
     try {
-      // 1) Grab signature header
+      // Verify signature (x-topgg-signature: t=...,v1=...)
       const sigHeader = req.get("x-topgg-signature");
       const parsed = parseTopggSignature(sigHeader);
-
       if (!parsed) {
         if (logger?.warn) logger.warn("[top.gg] Missing/invalid x-topgg-signature header");
         else console.warn("[top.gg] Missing/invalid x-topgg-signature header");
         return res.sendStatus(401);
       }
 
-      // 2) Compute expected HMAC
-      // Assumption (based on the header format): HMAC-SHA256(secret, `${t}.${rawBody}`)
       const raw = req.rawBody || Buffer.from(JSON.stringify(req.body || {}), "utf8");
       const signedPayload = Buffer.concat([Buffer.from(`${parsed.t}.`, "utf8"), raw]);
-
       const expected = crypto.createHmac("sha256", TOPGG_SECRET).update(signedPayload).digest("hex");
 
       if (!timingSafeEqual(expected, parsed.v1)) {
@@ -77,17 +84,24 @@ module.exports = function registerTopGgWebhook(client) {
         return res.sendStatus(401);
       }
 
-      // 3) Verified
-      const vote = req.body;
+      // Verified payload
+      const normalized = normalizeTopggEvent(req.body, TOPGG_BOT_ID || client.user?.id);
 
-      if (logger?.info) logger.info(`[top.gg] VERIFIED (signature) vote payload: ${JSON.stringify(vote)}`);
-      else console.log("[top.gg] VERIFIED (signature) vote payload:", vote);
+      if (logger?.info) logger.info(`[top.gg] VERIFIED (signature) type=${normalized.eventType} userId=${normalized.userId} botId=${normalized.botId}`);
+      else console.log(`[top.gg] VERIFIED (signature)`, normalized);
 
-      const userId = vote?.user;
-      const botId = vote?.bot || TOPGG_BOT_ID || client.user?.id;
+      // If it's a test event, you can either:
+      // - return 200 and do nothing, OR
+      // - send a "test received" message
+      if (normalized.eventType === "webhook.test") {
+        return res.status(200).send("OK (test received)");
+      }
 
-      if (!userId) throw new Error("Missing vote.user in payload");
-      if (!botId) throw new Error("Unable to determine botId for vote URL");
+      const userId = normalized.userId;
+      const botId = normalized.botId;
+
+      if (!userId) throw new Error("Missing user id in payload");
+      if (!botId) throw new Error("Missing bot id in payload");
 
       const voteUrl = `https://top.gg/bot/${botId}/vote`;
 

@@ -87,14 +87,31 @@ module.exports = function registerTopGgWebhook(client) {
       // Verified payload
       const normalized = normalizeTopggEvent(req.body, TOPGG_BOT_ID || client.user?.id);
 
-      if (logger?.info) logger.info(`[top.gg] VERIFIED (signature) type=${normalized.eventType} userId=${normalized.userId} botId=${normalized.botId}`);
+      if (logger?.info)
+        logger.info(
+          `[top.gg] VERIFIED (signature) type=${normalized.eventType} userId=${normalized.userId} botId=${normalized.botId}`
+        );
       else console.log(`[top.gg] VERIFIED (signature)`, normalized);
 
-      // If it's a test event, you can either:
-      // - return 200 and do nothing, OR
-      // - send a "test received" message
+      // FIX: on webhook.test, send an embed so you can confirm end-to-end
       if (normalized.eventType === "webhook.test") {
-        return res.status(200).send("OK (test received)");
+        const testEmbed = new EmbedBuilder()
+          .setColor(0xfee75c)
+          .setTitle("top.gg webhook test received")
+          .setDescription(
+            `Verified signature OK.\n\nUserId: ${
+              normalized.userId ? `<@${normalized.userId}>` : "`unknown`"
+            }\nBotId: \`${normalized.botId || "unknown"}\``
+          )
+          .setTimestamp();
+
+        const channel = await client.channels.fetch(VOTE_CHANNEL_ID);
+        if (!channel || !channel.isTextBased()) {
+          throw new Error(`Channel ${VOTE_CHANNEL_ID} not found or not text-based`);
+        }
+
+        await channel.send({ embeds: [testEmbed] });
+        return res.status(200).send("OK (test received + posted)");
       }
 
       const userId = normalized.userId;

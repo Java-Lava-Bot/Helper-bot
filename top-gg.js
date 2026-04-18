@@ -31,13 +31,9 @@ module.exports = function registerTopGgWebhook(client) {
     // DEBUG: proves top.gg is hitting your endpoint + whether it sent an Authorization header
     (req, res, next) => {
       if (logger?.info)
-        logger.info(
-          `[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`
-        );
+        logger.info(`[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`);
       else
-        console.log(
-          `[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`
-        );
+        console.log(`[top.gg] HIT /topgg/vote from ip=${req.ip} auth=${req.get("Authorization") ? "yes" : "no"}`);
       next();
     },
     webhook.listener(async (vote) => {
@@ -76,6 +72,13 @@ module.exports = function registerTopGgWebhook(client) {
       }
     })
   );
+
+  // Error-handling middleware (must be AFTER routes)
+  app.use((err, req, res, next) => {
+    if (logger?.error) logger.error(`[top.gg] Express error: ${err?.message || err}`);
+    else console.error("[top.gg] Express error:", err);
+    res.status(500).send("Internal error");
+  });
 
   app.listen(PORT, () => {
     if (logger?.info) logger.info(`[top.gg] Listening on port 8080 (POST /topgg/vote)`);

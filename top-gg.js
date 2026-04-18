@@ -27,7 +27,7 @@ function parseTopggSignature(sigHeader) {
   return { t: out.t, v1: out.v1 };
 }
 
-// broaden extraction so real vote events still work
+// FIX: broaden extraction so real vote events (which may differ from webhook.test) still work
 function normalizeTopggEvent(body, fallbackBotId) {
   // New envelope format
   if (body && body.data) {
@@ -52,7 +52,7 @@ function normalizeTopggEvent(body, fallbackBotId) {
     return { eventType: body.type, userId, botId, raw: body };
   }
 
-  // Old format: { user, bot, type }
+  // Old format (topgg sdk examples): { user, bot, type }
   const userId = body?.user;
   const botId = body?.bot || fallbackBotId;
   return { eventType: body?.type, userId, botId, raw: body };
@@ -63,7 +63,6 @@ module.exports = function registerTopGgWebhook(client) {
 
   const TOPGG_SECRET = process.env.TOPGG_WEBHOOK_AUTH; // whs_...
   const TOPGG_BOT_ID = process.env.TOPGG_BOT_ID; // recommended
-  const MANUAL_TEST_SECRET = process.env.MANUAL_VOTE_TEST_SECRET; // NEW: for manual testing
 
   if (!TOPGG_SECRET) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
 
@@ -80,49 +79,6 @@ module.exports = function registerTopGgWebhook(client) {
 
   app.get("/", (req, res) => res.status(200).send("OK"));
   app.get("/topgg/vote", (req, res) => res.status(200).send("OK (POST only)"));
-
-  // NEW: manual test endpoint (secure) to trigger the real vote embed on demand
-  // Usage: POST /topgg/vote/manual-test
-  // Headers: X-Test-Secret: <MANUAL_VOTE_TEST_SECRET>
-  // Body: { "userId": "1163939796767473698", "botId": "1305190785536360519" }
-  app.post("/topgg/vote/manual-test", async (req, res) => {
-    try {
-      const secret = req.get("x-test-secret");
-      if (!MANUAL_TEST_SECRET || !secret || secret !== MANUAL_TEST_SECRET) {
-        return res.sendStatus(401);
-      }
-
-      const userId = req.body?.userId;
-      const botId = req.body?.botId || TOPGG_BOT_ID || client.user?.id;
-
-      if (!userId) return res.status(400).send("Missing userId");
-      if (!botId) return res.status(400).send("Missing botId");
-
-      const voteUrl = `https://top.gg/bot/${botId}/vote`;
-
-      const embed = new EmbedBuilder()
-        .setColor(0x57f287)
-        .setDescription(`**<@${userId}> has upvoted Java Lava!**\n\nThanks for voting!`)
-        .setTimestamp();
-
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel("Upvote Java Lava").setURL(voteUrl)
-      );
-
-      const channel = await client.channels.fetch(VOTE_CHANNEL_ID);
-      if (!channel || !channel.isTextBased()) {
-        throw new Error(`Channel ${VOTE_CHANNEL_ID} not found or not text-based`);
-      }
-
-      await channel.send({ embeds: [embed], components: [row] });
-
-      return res.status(200).send("OK (manual test posted)");
-    } catch (err) {
-      if (logger?.error) logger.error(err);
-      else console.error(err);
-      return res.sendStatus(500);
-    }
-  });
 
   app.post("/topgg/vote", async (req, res) => {
     try {
@@ -154,7 +110,8 @@ module.exports = function registerTopGgWebhook(client) {
         );
       else console.log(`[top.gg] VERIFIED (signature)`, normalized);
 
-      // webhook.test is NOT a vote
+      // FIX: webhook.test is NOT a vote, so do NOT post the "vote" embed (or any embed).
+      // Just acknowledge it so top.gg shows success.
       if (normalized.eventType === "webhook.test") {
         return res.status(200).send("OK (test received)");
       }

@@ -4,7 +4,7 @@ module.exports = function registerTopGgWebhook(client) {
   const TOPGG_SECRET = process.env.TOPGG_WEBHOOK_AUTH; // whs_...
   const TOPGG_BOT_ID = process.env.TOPGG_BOT_ID; // recommended
 
-  // ✅ ADD these env vars for your own stats webhook receiver
+  // ✅ your own stats webhook receiver secret
   const DISCORDS_WEBHOOK_SECRET = process.env.DISCORDS_WEBHOOK_SECRET;
 
   if (!TOPGG_SECRET) throw new Error("Missing TOPGG_WEBHOOK_AUTH env var");
@@ -23,8 +23,12 @@ module.exports = function registerTopGgWebhook(client) {
   app.get("/", (req, res) => res.status(200).send("OK"));
   app.get("/topgg/vote", (req, res) => res.status(200).send("OK (POST only)"));
 
-  // ✅ ADD THIS: your own endpoint that your bot can POST to
-  // Set DISCORDS_WEBHOOK_URL to: https://jlhelper.discloud.app/webhooks/discords/stats
+  // ✅ FIX: add a GET route so visiting in browser doesn't show "Cannot GET ..."
+  app.get("/webhooks/discords/stats", (req, res) => {
+    return res.status(200).send("OK (POST only)");
+  });
+
+  // ✅ your endpoint that your poster bot can POST to
   app.post("/webhooks/discords/stats", (req, res) => {
     try {
       const { bot_id, servers, secret } = req.body || {};

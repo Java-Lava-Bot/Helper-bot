@@ -1,1 +1,14 @@
-{ "editor.formatOnPaste": true, "editor.formatOnSave": true, "prettier.printWidth": 1000, "explorer.compactFolders": false }
+{
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "prettier.printWidth": 1000,
+    "explorer.compactFolders": false,
+    "cSpell.words": [
+        "autoposter",
+        "AUTORESTART",
+        "cooldowns",
+        "discordbotlist",
+        "jlhelper",
+        "topgg"
+    ]
+}

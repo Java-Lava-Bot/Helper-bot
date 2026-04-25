@@ -7,7 +7,6 @@ const config = require("./config/config");
 const checkPermissions = require("./utils/checkPermissions");
 const { connectToMongo } = require("./utils/mongo");
 const { LogError } = require("./utils/LogError");
-const registerAutoposter = require("./autoposter");
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
   allowedMentions: { parse: ["users", "roles"], repliedUser: false }, //* If you need @everyone ping (not suggested) you can edit allowedMentions in .send object on TextChannel
@@ -151,7 +150,6 @@ client.helpers.InteractionHandler = InteractionHandler;
     }
     await client.login(token);
     logger.info(`Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`);
-    registerAutoposter(client);
 
     try { } catch (_) {}
   } catch (error) {
@@ -197,16 +195,4 @@ process.on("uncaughtExceptionMonitor", (error) => {
 
 process.on("warning", (warning) => {
   logger.warn("Node.js Warning", warning);
-});
-
-client.on(Events.GuildCreate, async (guild) => {
-  try {
-    if (typeof blacklistserver !== "undefined" && blacklistserver) {
-      const data = await blacklistserver.findOne({ Guild: guild.id });
-      if (!data) return;
-      await guild.leave();
-    }
-  } catch (err) {
-    logger.error("Error handling GuildCreate blacklist check", { error: err, guildId: guild.id });
-  }
 });

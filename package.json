@@ -18,11 +18,10 @@
   },
   "homepage": "https://github.com/PhillsPhanbh3/Java-Lava-V2#readme",
   "dependencies": {
-    "@top-gg/sdk": "^3.1.6",
-    "discord.js": "^14.26.3",
+    "discord.js": "^14.26.4",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.4.1",
+    "mongoose": "^9.6.2",
     "winston": "^3.19.0"
   }
 }

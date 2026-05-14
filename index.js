@@ -1,5 +1,5 @@
 require("dotenv/config");
-const { Client, GatewayIntentBits, Collection, Options, Events, PermissionsBitField } = require("discord.js");
+const { Client, GatewayIntentBits, Collection, Options, PermissionsBitField } = require("discord.js");
 const logger = require("./utils/logger");
 const loadEvents = require("./handlers/eventHandler");
 const loadComponents = require("./handlers/componentHandler");
@@ -100,8 +100,7 @@ async function InteractionHandler(interaction, type) {
 
     // Owner-only check (hard-coded id from your snippet)
     if (component.owner) {
-      if (interaction.user.id !== "1163939796767473698")
-        return await interaction.reply({ content: `⚠️ Only bot owners can use this command!`, flags: 64 });
+      if (interaction.user.id !== "1163939796767473698") return await interaction.reply({ content: `⚠️ Only bot owners can use this command!`, flags: 64 });
     }
 
     // Execute the command/component
@@ -151,7 +150,8 @@ client.helpers.InteractionHandler = InteractionHandler;
     await client.login(token);
     logger.info(`Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`);
 
-    try { } catch (_) {}
+    try {
+    } catch (_) {}
   } catch (error) {
     logger.error("An error occurred during startup/login", error);
   }
@@ -182,7 +182,8 @@ process.on("uncaughtException", (error) => {
     logger.error("Out of memory detected.", error);
   } else {
     logger.error("Uncaught Exception", error);
-  } try {
+  }
+  try {
     LogError(error, client, "uncaughtException");
   } catch (e) {
     logger.warn("LogError failed while reporting uncaughtException", e);

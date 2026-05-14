@@ -1,4 +1,3 @@
-const checkPermissions = require("../../utils/checkPermissions");
 const { ComponentType } = require("discord.js");
 const { LogError } = require("../../utils/LogError");
 const { logger } = require("../../utils/logger");

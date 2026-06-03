@@ -28,6 +28,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.6.3",
+    "typescript-eslint": "^8.60.1",
     "winston": "^3.19.0"
   },
   "devDependencies": {

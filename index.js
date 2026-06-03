@@ -1,5 +1,11 @@
 require("dotenv/config");
-const { Client, GatewayIntentBits, Collection, Options, PermissionsBitField } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  Collection,
+  Options,
+  PermissionsBitField,
+} = require("discord.js");
 const logger = require("./utils/logger");
 const loadEvents = require("./handlers/eventHandler");
 const loadComponents = require("./handlers/componentHandler");
@@ -8,15 +14,28 @@ const checkPermissions = require("./utils/checkPermissions");
 const { connectToMongo } = require("./utils/mongo");
 const { LogError } = require("./utils/LogError");
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
   allowedMentions: { parse: ["users", "roles"], repliedUser: false }, //* If you need @everyone ping (not suggested) you can edit allowedMentions in .send object on TextChannel
-  makeCache: Options.cacheWithLimits({ PresenceManager: 0, ReactionManager: 0, ReactionUserManager: 0 }),
+  makeCache: Options.cacheWithLimits({
+    PresenceManager: 0,
+    ReactionManager: 0,
+    ReactionUserManager: 0,
+  }),
 });
 client.config = config;
 client.logger = logger;
 client.events = new Map();
 client.commands = { slash: new Collection(), prefix: new Collection(), context: new Collection() };
-client.components = { buttons: new Collection(), selectMenus: new Collection(), modals: new Collection() };
+client.components = {
+  buttons: new Collection(),
+  selectMenus: new Collection(),
+  modals: new Collection(),
+};
 client.cooldowns = new Map();
 client.helpers = { checkPermissions };
 module.exports = client;
@@ -59,20 +78,24 @@ async function InteractionHandler(interaction, type) {
 
   try {
     // Safer, robust logging that won't throw if values are missing.
-    const userTag = interaction.user?.tag ?? interaction.user?.username ?? interaction.user?.id ?? "Unknown User";
+    const userTag =
+      interaction.user?.tag ?? interaction.user?.username ?? interaction.user?.id ?? "Unknown User";
     const location = interaction.guild ? interaction.guild.name : "DMs";
     const triggerId = id ?? "unknown-id";
     const triggerType = type ?? "unknown-type";
 
     // Use your logger if available, fallback to console.log
     if (client.logger && typeof client.logger.info === "function") {
-      client.logger.info(`[INTERACTION] ${userTag} in ${location} triggered ${triggerType} ${triggerId}`, {
-        event: "interaction",
-        type: triggerType,
-        id: triggerId,
-        userId: interaction.user?.id,
-        guildId: interaction.guild?.id,
-      });
+      client.logger.info(
+        `[INTERACTION] ${userTag} in ${location} triggered ${triggerType} ${triggerId}`,
+        {
+          event: "interaction",
+          type: triggerType,
+          id: triggerId,
+          userId: interaction.user?.id,
+          guildId: interaction.guild?.id,
+        }
+      );
     } else {
       logger.info(`[INTERACTION] ${userTag} in ${location} triggered ${triggerType} ${triggerId}`);
     }
@@ -80,13 +103,20 @@ async function InteractionHandler(interaction, type) {
     // Admin-only check (if present)
     if (component.admin) {
       if (!interaction.member?.permissions?.has(PermissionsBitField.Flags.Administrator)) {
-        return await interaction.reply({ content: `⚠️ Only administrators can use this command!`, flags: 64 });
+        return await interaction.reply({
+          content: `⚠️ Only administrators can use this command!`,
+          flags: 64,
+        });
       }
     }
 
     // Owner-only check (hard-coded id from your snippet)
     if (component.owner) {
-      if (interaction.user.id !== "1163939796767473698") return await interaction.reply({ content: `⚠️ Only bot owners can use this command!`, flags: 64 });
+      if (interaction.user.id !== "1163939796767473698")
+        return await interaction.reply({
+          content: `⚠️ Only bot owners can use this command!`,
+          flags: 64,
+        });
     }
 
     // Execute the command/component
@@ -134,7 +164,9 @@ client.helpers.InteractionHandler = InteractionHandler;
       process.exit(1);
     }
     await client.login(token);
-    logger.info(`Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`);
+    logger.info(
+      `Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`
+    );
 
     try {
     } catch (_) {}

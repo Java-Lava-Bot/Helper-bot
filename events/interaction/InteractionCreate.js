@@ -12,9 +12,11 @@ module.exports = {
       if (interaction.isChatInputCommand && interaction.isChatInputCommand()) type = "commands";
       else if (interaction.isAutocomplete && interaction.isAutocomplete()) type = "commands";
       else if (interaction.isButton && interaction.isButton()) type = "buttons";
-      else if (interaction.isStringSelectMenu && interaction.isStringSelectMenu()) type = "selectMenus";
+      else if (interaction.isStringSelectMenu && interaction.isStringSelectMenu())
+        type = "selectMenus";
       else if (interaction.isModalSubmit && interaction.isModalSubmit()) type = "modals";
-      else if (typeof interaction.isContextMenu === "function" && interaction.isContextMenu()) type = "commands"; // context menus currently live under commands collections in your project
+      else if (typeof interaction.isContextMenu === "function" && interaction.isContextMenu())
+        type = "commands"; // context menus currently live under commands collections in your project
 
       // If the centralized helper exists, delegate to it (keeps logging and handling in index.js)
       if (client.helpers && typeof client.helpers.InteractionHandler === "function") {
@@ -22,7 +24,9 @@ module.exports = {
       }
     } catch (err) {
       // If delegation fails, fall through to local handling below
-      try { logger.error("Interaction delegation failed:", err); } catch (_) {}
+      try {
+        logger.error("Interaction delegation failed:", err);
+      } catch (_) {}
     }
 
     // Fallback: local handling (keeps original behavior if helper is missing)
@@ -46,7 +50,8 @@ module.exports = {
 
     try {
       if (interaction.isAutocomplete()) {
-        if (typeof command.autocomplete === "function") await command.autocomplete(interaction, client);
+        if (typeof command.autocomplete === "function")
+          await command.autocomplete(interaction, client);
       } else {
         await command.execute(interaction, client);
       }
@@ -64,9 +69,15 @@ module.exports = {
 
       try {
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: `There was an error while executing this command!`, flags: 64 });
+          await interaction.followUp({
+            content: `There was an error while executing this command!`,
+            flags: 64,
+          });
         } else {
-          await interaction.reply({ content: `There was an error while executing this command!`, flags: 64 });
+          await interaction.reply({
+            content: `There was an error while executing this command!`,
+            flags: 64,
+          });
         }
       } catch (err) {
         return;

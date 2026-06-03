@@ -27,9 +27,19 @@ function validateOptions(option) {
 }
 
 function formatCommand(cmd) {
-  if (!cmd.name || typeof cmd.name !== "string") throw new Error("Command must have a vaild 'name' string");
+  if (!cmd.name || typeof cmd.name !== "string")
+    throw new Error("Command must have a vaild 'name' string");
 
-  const { name, description = "No description", options = [], defaultMemberPermissions = null, nsfw = false, contexts = DEFAULT_CONTEXTS, integrationTypes = DEFAULT_INTEGRATION, dmPermission = true } = cmd;
+  const {
+    name,
+    description = "No description",
+    options = [],
+    defaultMemberPermissions = null,
+    nsfw = false,
+    contexts = DEFAULT_CONTEXTS,
+    integrationTypes = DEFAULT_INTEGRATION,
+    dmPermission = true,
+  } = cmd;
 
   return {
     name,
@@ -39,7 +49,10 @@ function formatCommand(cmd) {
     dmPermission,
     developerCommand: cmd.developerCommand === true,
     contexts: Array.isArray(contexts) && contexts.length ? contexts : DEFAULT_CONTEXTS,
-    integrationTypes: Array.isArray(integrationTypes) && integrationTypes.length ? integrationTypes : DEFAULT_INTEGRATION,
+    integrationTypes:
+      Array.isArray(integrationTypes) && integrationTypes.length
+        ? integrationTypes
+        : DEFAULT_INTEGRATION,
     options: Array.isArray(options) ? options.map(validateOptions) : [],
   };
 }

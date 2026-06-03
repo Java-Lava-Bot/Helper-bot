@@ -13,7 +13,9 @@ module.exports = {
     if (!message.content.startsWith(client.config.prefix)) return;
     const args = message.content.slice(client.config.prefix.length).trim().split(/ +/);
     const commandName = args.shift()?.toLowerCase();
-    const command = client.commands.prefix.get(commandName) || client.commands.prefix.find((cmd) => cmd.aliases && cmd.aliases.includes(commandName));
+    const command =
+      client.commands.prefix.get(commandName) ||
+      client.commands.prefix.find((cmd) => cmd.aliases && cmd.aliases.includes(commandName));
     if (!command) return;
 
     if (await client.helpers.checkPermissions("message", message, command, client)) return;
@@ -22,7 +24,10 @@ module.exports = {
       command.execute(message, args, client);
     } catch (error) {
       logger.error(`Error executing command ${commandName}: ${error.message}`, error, LogError);
-      message.reply({ content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`, flags: 64 });
+      message.reply({
+        content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`,
+        flags: 64,
+      });
     }
   },
 };

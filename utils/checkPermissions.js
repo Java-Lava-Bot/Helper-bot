@@ -22,11 +22,29 @@ module.exports = async function checkPermissions(type, target, command, client) 
 
   const userPerms = formatPermissions(user, (p) => target.member?.permissions?.has(p));
   const botPerms = formatPermissions(bot, (p) => target.guild?.members?.me?.permissions?.has(p));
-  const permissionMessage = [userPerms && `You are missing permissions: ${userPerms}`, botPerms && `I (bot) am missing permissions: ${botPerms}`, isPremiumOnly && `Premium only command`, isServerOwnerOnly && target.user?.id !== target.guild?.ownerId && `Server owner only`, isDeveloperOnly && !client.config.developers.includes(target.user ? target.user.id : target.author?.id) && `Developer only`].filter(Boolean).join("\n");
+  const permissionMessage = [
+    userPerms && `You are missing permissions: ${userPerms}`,
+    botPerms && `I (bot) am missing permissions: ${botPerms}`,
+    isPremiumOnly && `Premium only command`,
+    isServerOwnerOnly && target.user?.id !== target.guild?.ownerId && `Server owner only`,
+    isDeveloperOnly &&
+      !client.config.developers.includes(target.user ? target.user.id : target.author?.id) &&
+      `Developer only`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  if (permissionMessage) return target.reply({ content: permissionMessage, flags: type === "interaction" ? 64 : undefined });
+  if (permissionMessage)
+    return target.reply({
+      content: permissionMessage,
+      flags: type === "interaction" ? 64 : undefined,
+    });
 
   const now = Date.now();
-  if (client.cooldowns.has(cooldownKey) && client.cooldowns.get(cooldownKey) > now) return target.reply({ content: `cooldown: <t:${Math.floor(client.cooldowns.get(cooldownKey) / 1000)}:R>`, flags: 64 });
+  if (client.cooldowns.has(cooldownKey) && client.cooldowns.get(cooldownKey) > now)
+    return target.reply({
+      content: `cooldown: <t:${Math.floor(client.cooldowns.get(cooldownKey) / 1000)}:R>`,
+      flags: 64,
+    });
   client.cooldowns.set(cooldownKey, now + cooldownsMs);
 };

@@ -12,7 +12,9 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.colorize({ all: true }),
     winston.format.timestamp({ format: "MM-DD-YYYY HH:mm:ss" }),
-    winston.format.printf(({ timestamp, level, message }) => `[Java Lava Helper] - [${timestamp}][${level}]: ${message}`)
+    winston.format.printf(
+      ({ timestamp, level, message }) => `[Java Lava Helper] - [${timestamp}][${level}]: ${message}`
+    )
   ),
   transports: [
     new winston.transports.Console(),
@@ -22,8 +24,8 @@ const logger = winston.createLogger({
       lazy: true,
       handleExceptions: true,
       handleRejections: true,
-      maxsize: 10 * 1024 * 1024
-    })
+      maxsize: 10 * 1024 * 1024,
+    }),
   ],
   exitOnError: false,
 });

@@ -5,7 +5,7 @@ const { logger } = require("../../utils/logger");
 async function getServerCount(client) {
   if (client.shard) {
     try {
-      const counts = await client.shard.fetchClientValues('guilds.cache.size');
+      const counts = await client.shard.fetchClientValues("guilds.cache.size");
       return counts.reduce((a, b) => a + b, 0);
     } catch (err) {
       return client.guilds.cache.size;
@@ -16,8 +16,12 @@ async function getServerCount(client) {
 
 function buildStatuses(serverCount, apiLatency) {
   return [
-    { name: 'Java Lava', type: ActivityType.Watching },
-    { name: `latency: API Latency: ${apiLatency}ms`, type: ActivityType.Streaming, url: 'https://www.twitch.tv/phillsphanbh3' },
+    { name: "Java Lava", type: ActivityType.Watching },
+    {
+      name: `latency: API Latency: ${apiLatency}ms`,
+      type: ActivityType.Streaming,
+      url: "https://www.twitch.tv/phillsphanbh3",
+    },
   ];
 }
 
@@ -63,13 +67,18 @@ module.exports = {
         }
       }, 15000);
 
-      const shouldLogReady = !client.shard || (Array.isArray(client.shard.ids) && client.shard.ids.includes(0));
+      const shouldLogReady =
+        !client.shard || (Array.isArray(client.shard.ids) && client.shard.ids.includes(0));
       if (shouldLogReady) {
-        client.logger?.info("[Java Lava Helper - Online] Java Lava Helper is now ready!") ?? logger.info("[Java Lava Helper - Online] Java Lava Helper is now ready!");
-        client.logger?.info('[Java Lava Helper - Online] Hello World! I am Java Lava\'s helper bot.') ?? logger.info('[Java Lava Helper - Online] Hello World! I am Java Lava\'s helper bot.');
+        client.logger?.info("[Java Lava Helper - Online] Java Lava Helper is now ready!") ??
+          logger.info("[Java Lava Helper - Online] Java Lava Helper is now ready!");
+        client.logger?.info(
+          "[Java Lava Helper - Online] Hello World! I am Java Lava's helper bot."
+        ) ?? logger.info("[Java Lava Helper - Online] Hello World! I am Java Lava's helper bot.");
       }
     } catch (err) {
-      client.logger?.error?.("Error in clientReady event:", err) ?? logger.error("Error in clientReady event:", err);
+      client.logger?.error?.("Error in clientReady event:", err) ??
+        logger.error("Error in clientReady event:", err);
     }
   },
 };

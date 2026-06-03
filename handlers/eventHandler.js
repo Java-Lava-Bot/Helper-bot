@@ -21,7 +21,8 @@ module.exports = async function loadEvents(client) {
         client.events.set(event.name, event);
         eventCount++;
 
-        if (event.rest) event.once ? client.rest.once(event.name, execute) : client.rest.on(event.name, execute);
+        if (event.rest)
+          event.once ? client.rest.once(event.name, execute) : client.rest.on(event.name, execute);
         else event.once ? client.once(event.name, execute) : client.on(event.name, execute);
       })
     );

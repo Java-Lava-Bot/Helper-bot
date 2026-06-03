@@ -28,9 +28,18 @@ module.exports = {
       }
     } catch (err) {
       if (err && err.code === 10062) return;
-      await interaction.followUp({ content: "An error occurred while executing the command.", flags: 64 }).catch(() => {});
-      logger.error(`[Stable Ping] Error executing command for ${interaction.user.tag}: ${err?.message ?? err}`, err);
-      await LogError(err, interaction.client, `[Stable Ping] Error executing command for ${interaction.user.tag}`);
+      await interaction
+        .followUp({ content: "An error occurred while executing the command.", flags: 64 })
+        .catch(() => {});
+      logger.error(
+        `[Stable Ping] Error executing command for ${interaction.user.tag}: ${err?.message ?? err}`,
+        err
+      );
+      await LogError(
+        err,
+        interaction.client,
+        `[Stable Ping] Error executing command for ${interaction.user.tag}`
+      );
     }
   },
 };

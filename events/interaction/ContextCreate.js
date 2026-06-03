@@ -7,7 +7,8 @@ module.exports = {
   name: "interactionCreate",
   once: false,
   async execute(interaction, client) {
-    if (!interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand()) return;
+    if (!interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand())
+      return;
     const context = client.commands.context.get(interaction.commandName);
     if (!context) return;
 
@@ -16,9 +17,21 @@ module.exports = {
     try {
       await context.execute(interaction, client);
     } catch (error) {
-      logger.error(`[Interactions] Error executing context command ${interaction.commandName}: ${error.message}`, error, LogError);
-      if (interaction.replied || interaction.deferred) interaction.followUp({ content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`, flags: 64 });
-      else interaction.reply({ content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`, flags: 64 });
+      logger.error(
+        `[Interactions] Error executing context command ${interaction.commandName}: ${error.message}`,
+        error,
+        LogError
+      );
+      if (interaction.replied || interaction.deferred)
+        interaction.followUp({
+          content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`,
+          flags: 64,
+        });
+      else
+        interaction.reply({
+          content: `There was an error while executing this command! Please report this to the support server ${supportinvite}`,
+          flags: 64,
+        });
     }
   },
 };

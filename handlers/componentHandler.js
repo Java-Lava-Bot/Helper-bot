@@ -12,7 +12,8 @@ module.exports = async function loadComponents(client) {
     client.components[type]?.clear();
 
     const files = await loadFiles(path.join(__dirname, "..", "components", folderName));
-    if (files.length === 0) return client.logger.warn(`[ComponentLoader] No ${type} component files found to load.`);
+    if (files.length === 0)
+      return client.logger.warn(`[ComponentLoader] No ${type} component files found to load.`);
     let totalComponentCount = 0;
 
     await Promise.all(
@@ -24,11 +25,16 @@ module.exports = async function loadComponents(client) {
           client.components[type]?.set(component.customId, component);
           totalComponentCount++;
         } catch (error) {
-          client.logger.error(`[ComponentLoader] Error loading ${type} component at ${file}: ${error.message}`, error);
+          client.logger.error(
+            `[ComponentLoader] Error loading ${type} component at ${file}: ${error.message}`,
+            error
+          );
         }
       })
     );
-    client.logger.info(`[ComponentLoader] Loaded ${totalComponentCount} ${type} components from ${folderName}`);
+    client.logger.info(
+      `[ComponentLoader] Loaded ${totalComponentCount} ${type} components from ${folderName}`
+    );
   };
 
   await Promise.all(componentTypes.map(({ type, folderName }) => loadComponents(type, folderName)));

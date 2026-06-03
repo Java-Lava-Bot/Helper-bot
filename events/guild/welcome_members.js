@@ -19,13 +19,13 @@ module.exports = {
         .setTitle(`Welcome to ${member.guild.name}!`)
         .setDescription(
           `Welcome ${member} to **${member.guild.name}**!\n` +
-          `We're glad to have you here! Please check out the https://discord.com/channels/1392910932740538540/1392919246970818671 channel for important information and rules.\n` +
-          `We are a discord bot support server for the discord bot Java Lava! We have a friendly community and staff team ready to help you with any questions or issues you may have regarding your bot development journey.\n` +
-          `We don't offer support for other bots, but we encourage you to ask for help and share your projects with the community. We want to make sure you have a great experience here, so if you have any questions or need help, don't hesitate to ask the staff team or other members. Enjoy your stay!\n` +
-          `Any questions about Java Lava? Ask in https://discord.com/channels/1392910932740538540/1403919624675921931\n` +
-          `Want to give suggestions for Java Lava? Share them in https://discord.com/channels/1392910932740538540/1403919694540570726\n` +
-          `Got any bug reports for Java Lava? Report them in https://discord.com/channels/1392910932740538540/1407745035025252575\n`+
-          `Got a review of Java Lava? Share it in https://discord.com/channels/1392910932740538540/1439636653085032550 today!`
+            `We're glad to have you here! Please check out the https://discord.com/channels/1392910932740538540/1392919246970818671 channel for important information and rules.\n` +
+            `We are a discord bot support server for the discord bot Java Lava! We have a friendly community and staff team ready to help you with any questions or issues you may have regarding your bot development journey.\n` +
+            `We don't offer support for other bots, but we encourage you to ask for help and share your projects with the community. We want to make sure you have a great experience here, so if you have any questions or need help, don't hesitate to ask the staff team or other members. Enjoy your stay!\n` +
+            `Any questions about Java Lava? Ask in https://discord.com/channels/1392910932740538540/1403919624675921931\n` +
+            `Want to give suggestions for Java Lava? Share them in https://discord.com/channels/1392910932740538540/1403919694540570726\n` +
+            `Got any bug reports for Java Lava? Report them in https://discord.com/channels/1392910932740538540/1407745035025252575\n` +
+            `Got a review of Java Lava? Share it in https://discord.com/channels/1392910932740538540/1439636653085032550 today!`
         )
         .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
         .setColor("#00FF88")
@@ -35,7 +35,9 @@ module.exports = {
 
       logger.info(`[Welcome] ${member.user.tag} joined ${member.guild.name}`);
     } catch (error) {
-      try { LogError(error, client); } catch (_) {}
+      try {
+        LogError(error, client);
+      } catch (_) {}
       logger.error("[Welcome] Error sending welcome message:", error);
     }
   },

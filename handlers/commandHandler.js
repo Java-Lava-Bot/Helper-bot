@@ -19,7 +19,8 @@ module.exports = async function loadCommands(client) {
     sources.map(async ({ type, folder, useData }) => {
       try {
         const files = await loadFiles(path.join(__dirname, "..", "commands", folder));
-        if (!files.length) return client.logger.warn(`[CommandLoader] No ${type} command files found to load.`);
+        if (!files.length)
+          return client.logger.warn(`[CommandLoader] No ${type} command files found to load.`);
 
         await Promise.all(
           files.map(async (file) => {
@@ -30,7 +31,8 @@ module.exports = async function loadCommands(client) {
 
               const name = useData ? cmd.data.name : cmd.name;
               client.commands[type]?.set(name, cmd);
-              if (useData) (cmd.settings?.isDeveloperOnly ? localDev : localGlobal).push(cmd.data.toJSON());
+              if (useData)
+                (cmd.settings?.isDeveloperOnly ? localDev : localGlobal).push(cmd.data.toJSON());
               else syncedPrefix.push(name);
             } catch (error) {
               client.logger.error(`[CommandLoader] Failed to load ${file}: ${error.message}`);
@@ -43,25 +45,71 @@ module.exports = async function loadCommands(client) {
     })
   );
 
-  const existing = await client.application.commands.fetch({ withLocalizations: false }).then((coll) => Array.from(coll.values()).map((cmd) => Object.fromEntries(Object.entries(cmd.toJSON()).map(([k, v]) => [k, typeof v === "bigint" ? v.toString() : v]))));
+  const existing = await client.application.commands
+    .fetch({ withLocalizations: false })
+    .then((coll) =>
+      Array.from(coll.values()).map((cmd) =>
+        Object.fromEntries(
+          Object.entries(cmd.toJSON()).map(([k, v]) => [
+            k,
+            typeof v === "bigint" ? v.toString() : v,
+          ])
+        )
+      )
+    );
   const existingMap = new Map(existing.map((cmd) => [cmd.name.toLowerCase(), cmd]));
 
-  const updated = localGlobal.map((cmd) => (existingMap.has(cmd.name.toLowerCase()) ? commandComparing(cmd, existingMap.get(cmd.name.toLowerCase())) : cmd)).filter(Boolean);
-  const deleted = existing.filter((cmd) => !localGlobal.some((c) => c.name.toLowerCase() === cmd.name.toLowerCase()));
+  const updated = localGlobal
+    .map((cmd) =>
+      existingMap.has(cmd.name.toLowerCase())
+        ? commandComparing(cmd, existingMap.get(cmd.name.toLowerCase()))
+        : cmd
+    )
+    .filter(Boolean);
+  const deleted = existing.filter(
+    (cmd) => !localGlobal.some((c) => c.name.toLowerCase() === cmd.name.toLowerCase())
+  );
 
   if (updated.length || deleted.length) {
     await rest
       .put(Routes.applicationCommands(process.env.APP_ID), { body: localGlobal })
-      .then(() => client.logger.info(`[CommandLoader] Successfully synced ${localGlobal.length} global command${localGlobal.length === 1 ? "" : "s"}.`))
-      .catch((error) => client.logger.error(`[CommandLoader] Failed to sync global commands: ${error.message}`, error));
+      .then(() =>
+        client.logger.info(
+          `[CommandLoader] Successfully synced ${localGlobal.length} global command${localGlobal.length === 1 ? "" : "s"}.`
+        )
+      )
+      .catch((error) =>
+        client.logger.error(
+          `[CommandLoader] Failed to sync global commands: ${error.message}`,
+          error
+        )
+      );
   }
 
-  if (localDev.length && client.config.developerGuildId && /^(\d{17,19})$/.test(client.config.developerGuildId)) {
+  if (
+    localDev.length &&
+    client.config.developerGuildId &&
+    /^(\d{17,19})$/.test(client.config.developerGuildId)
+  ) {
     await rest
-      .put(Routes.applicationGuildCommands(process.env.APP_ID, client.config.developerGuildId), { body: localDev })
-      .then(() => client.logger.info(`[CommandLoader] Successfully synced ${localDev.length} developer guild command${localDev.length === 1 ? "" : "s"}.`))
-      .catch((error) => client.logger.error(`[CommandLoader] Failed to sync developer guild commands: ${error.message}`, error));
+      .put(Routes.applicationGuildCommands(process.env.APP_ID, client.config.developerGuildId), {
+        body: localDev,
+      })
+      .then(() =>
+        client.logger.info(
+          `[CommandLoader] Successfully synced ${localDev.length} developer guild command${localDev.length === 1 ? "" : "s"}.`
+        )
+      )
+      .catch((error) =>
+        client.logger.error(
+          `[CommandLoader] Failed to sync developer guild commands: ${error.message}`,
+          error
+        )
+      );
   }
 
-  if (syncedPrefix.length) client.logger.info(`[CommandLoader] Loaded prefix command${syncedPrefix.length === 1 ? "" : "s"}: ${syncedPrefix.join("")}`);
+  if (syncedPrefix.length)
+    client.logger.info(
+      `[CommandLoader] Loaded prefix command${syncedPrefix.length === 1 ? "" : "s"}: ${syncedPrefix.join("")}`
+    );
 };

@@ -58,7 +58,7 @@ jobs:
 
       # ── Upload coverage report ─────────────────────────────────────────────
       - name: Upload coverage report
-        if: matrix.node-version == '20.x'   # upload once, not per matrix leg
+        if: matrix.node-version == '20.x' # upload once, not per matrix leg
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

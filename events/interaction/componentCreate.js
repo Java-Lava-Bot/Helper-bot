@@ -7,7 +7,8 @@ module.exports = {
   name: "interactionCreate",
   once: false,
   async execute(interaction, client) {
-    if (interaction.isButton() && interaction.isStringSelectMenu() && interaction.isModalSubmit()) return;
+    if (interaction.isButton() && interaction.isStringSelectMenu() && interaction.isModalSubmit())
+      return;
 
     let component;
 
@@ -31,14 +32,27 @@ module.exports = {
     }
 
     if (!component) return;
-    if (await client.helpers.checkPermissions("interaction", interaction, component, client)) return;
+    if (await client.helpers.checkPermissions("interaction", interaction, component, client))
+      return;
 
     try {
       await component.execute(interaction, client);
     } catch (error) {
-      logger.error(`[Interactions] Error executing component ${interaction.customId}: ${error.message}`, error, LogError);
-      if (interaction.replied || interaction.deferred) interaction.followUp({ content: `There was an error while executing this component! Please report this to the support server ${supportinvite}`, flags: 64 });
-      else interaction.reply({ content: `There was an error while executing this component! Please report this to the support server ${supportinvite}`, flags: 64 });
+      logger.error(
+        `[Interactions] Error executing component ${interaction.customId}: ${error.message}`,
+        error,
+        LogError
+      );
+      if (interaction.replied || interaction.deferred)
+        interaction.followUp({
+          content: `There was an error while executing this component! Please report this to the support server ${supportinvite}`,
+          flags: 64,
+        });
+      else
+        interaction.reply({
+          content: `There was an error while executing this component! Please report this to the support server ${supportinvite}`,
+          flags: 64,
+        });
     }
   },
 };

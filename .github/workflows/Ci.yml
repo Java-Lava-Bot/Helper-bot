@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  ci:
+    name: Lint, Type-check, Build & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Node.js setup ──────────────────────────────────────────────────────
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      # ── Install dependencies ───────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Lint (ESLint) ──────────────────────────────────────────────────────
+      - name: Lint
+        run: npm run lint
+
+      # ── Format check (Prettier) ────────────────────────────────────────────
+      - name: Check formatting
+        run: npm run format:check
+
+      # ── Type-check (tsc --noEmit) ──────────────────────────────────────────
+      - name: Type-check
+        run: npm run type-check
+
+      # ── Build (tsc) ────────────────────────────────────────────────────────
+      - name: Build
+        run: npm run build
+
+      # ── Tests (Jest) ───────────────────────────────────────────────────────
+      - name: Run tests
+        run: npm test -- --coverage --forceExit
+        env:
+          # Discord credentials are never needed at test time if you mock the
+          # client. Add only what your test suite actually reads at runtime.
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+
+      # ── Upload coverage report ─────────────────────────────────────────────
+      - name: Upload coverage report
+        if: matrix.node-version == '20.x'   # upload once, not per matrix leg
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7

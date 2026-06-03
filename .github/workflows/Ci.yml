@@ -49,7 +49,7 @@ jobs:
 
       # ── Tests (Jest) ───────────────────────────────────────────────────────
       - name: Run tests
-        run: npm test -- --coverage --forceExit
+        run: npm test -- --coverage
         env:
           # Discord credentials are never needed at test time if you mock the
           # client. Add only what your test suite actually reads at runtime.

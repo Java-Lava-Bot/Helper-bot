@@ -40,7 +40,7 @@ async function InteractionHandler(interaction, type) {
   const component = collection?.get?.(id);
   if (!component) return;
 
-  // Developer-only and blacklist pre-checks for "commands" type
+  // Developer-only pre-checks for "commands" type
   if (type === "commands") {
     try {
       if (component.devCommand) {
@@ -52,22 +52,8 @@ async function InteractionHandler(interaction, type) {
           });
         }
       }
-
-      if (typeof blacklist !== "undefined" && blacklist) {
-        try {
-          const data = await blacklist.findOne({ User: interaction.user.id });
-          if (data) {
-            return await interaction.reply({
-              content: `⚠️ You have been **BLACKLISTED** from using this bot!\nTo appeal, join the support server linked in my bio.`,
-              flags: 64,
-            });
-          }
-        } catch (err) {
-          console.error("Error checking blacklist:", err);
-        }
-      }
     } catch (error) {
-      console.error("Error checking dev/blacklist preconditions:", error);
+      console.error("Error checking dev preconditions:", error);
     }
   }
 

@@ -40,6 +40,19 @@ client.cooldowns = new Map();
 client.helpers = { checkPermissions };
 module.exports = client;
 
+const { setupBumpReminder, handleMessage } = require("./bumpReminder");
+
+// Example: configure on startup (or from a slash command)
+setupBumpReminder(
+  "1392910932740538540",
+  "1467685229916455013",
+  "1467684301280907412" // the role to ping, e.g. @Bump Squad
+);
+
+client.on("messageCreate", (message) => {
+  handleMessage(client, message);
+});
+
 async function InteractionHandler(interaction, type) {
   // Resolve the collection where this component/command should live
   const id = interaction.customId ?? interaction.commandName;

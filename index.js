@@ -40,7 +40,7 @@ client.cooldowns = new Map();
 client.helpers = { checkPermissions };
 module.exports = client;
 
-const { setupBumpReminder, handleMessage } = require("./bumpReminder");
+const { setupBumpReminder, handleMessage } = require("./events/notifications/bumpReminder");
 
 // Example: configure on startup (or from a slash command)
 setupBumpReminder(

@@ -1,7 +1,6 @@
 {
   "name": "java_lava_helper",
   "version": "2.0.0",
-  "type": "module",
   "description": "The Java Lava Discord Bot - Helper Version",
   "main": "index.js",
   "scripts": {

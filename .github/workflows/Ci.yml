@@ -10,6 +10,9 @@ jobs:
   ci:
     name: Lint, Type-check, Build & Test
     runs-on: ubuntu-latest
+    env:
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
 
     strategy:
       matrix:
@@ -50,11 +53,8 @@ jobs:
       # ── Tests (Jest) ───────────────────────────────────────────────────────
       - name: Run tests
         run: npm test -- --coverage
-        env:
-          # Discord credentials are never needed at test time if you mock the
-          # client. Add only what your test suite actually reads at runtime.
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+        # Discord credentials are never needed at test time if you mock the
+        # client. Add only what your test suite actually reads at runtime.
 
       # ── Upload coverage report ─────────────────────────────────────────────
       - name: Upload coverage report

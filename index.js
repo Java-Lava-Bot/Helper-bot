@@ -40,17 +40,10 @@ client.cooldowns = new Map();
 client.helpers = { checkPermissions };
 module.exports = client;
 
-const { setupBumpReminder, handleMessage } = require("./events/notifications/bumpReminder");
-
-// Example: configure on startup (or from a slash command)
-setupBumpReminder(
-  "1392910932740538540",
-  "1467685229916455013",
-  "1467684301280907412" // the role to ping, e.g. @Bump Squad
-);
+const { loadConfig, handleMessage } = require("./events/notifications/bumpReminder");
 
 client.on("messageCreate", (message) => {
-  handleMessage(client, message);
+  handleMessage(message);
 });
 
 async function InteractionHandler(interaction, type) {
@@ -170,6 +163,7 @@ client.helpers.InteractionHandler = InteractionHandler;
 
 (async () => {
   try {
+    loadConfig();
     await Promise.all([connectToMongo(), loadEvents(client), loadComponents(client)]);
 
     const token = process.env.DISCORD_TOKEN;

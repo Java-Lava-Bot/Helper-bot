@@ -54,7 +54,8 @@ function getConfig(guildId) {
 // ─── Message Handler ─────────────────────────────────────────────────────────
 
 async function handleMessage(message) {
-  // Only care about DISBOARD messages in guilds
+  // Guard against system/webhook messages that have no author or guild
+  if (!message.author) return;
   if (message.author.id !== DISBOARD_ID) return;
   if (!message.guild) return;
   if (!message.embeds.length) return;

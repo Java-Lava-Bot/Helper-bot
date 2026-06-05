@@ -171,18 +171,17 @@ client.helpers.InteractionHandler = InteractionHandler;
 (async () => {
   try {
     await Promise.all([connectToMongo(), loadEvents(client), loadComponents(client)]);
+
     const token = process.env.DISCORD_TOKEN;
     if (!token) {
       logger.error("DISCORD_TOKEN environment variable is not set. Aborting startup.");
       process.exit(1);
     }
+
     await client.login(token);
     logger.info(
       `Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`
     );
-
-    try {
-    } catch (_) {}
   } catch (error) {
     logger.error("An error occurred during startup/login", error);
   }

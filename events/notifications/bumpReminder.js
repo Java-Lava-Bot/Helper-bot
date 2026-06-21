@@ -3,6 +3,7 @@ const fs = require("fs");
 const DISBOARD_ID = "302050872383242240";
 const BUMP_COOLDOWN = 2 * 60 * 60 * 1000; // 2 hours in ms
 const CONFIG_FILE = "./bump-config.json";
+const logger = require("../../utils/logger");
 
 // In-memory store: guildId -> { channelId, roleId, timer }
 const guildConfig = new Map();
@@ -16,9 +17,9 @@ function loadConfig() {
     for (const [guildId, config] of Object.entries(data)) {
       guildConfig.set(guildId, { ...config, timer: null });
     }
-    console.log(`[BumpReminder] Loaded config for ${guildConfig.size} guild(s).`);
+    logger.info(`[BumpReminder] Loaded config for ${guildConfig.size} guild(s).`);
   } catch (err) {
-    console.error("[BumpReminder] Failed to load config:", err);
+    logger.error("[BumpReminder] Failed to load config:", err);
   }
 }
 
@@ -58,11 +59,11 @@ async function handleMessage(message) {
 
   // DEBUG: log every message from DISBOARD so we can see what it sends
   if (message.author.id === DISBOARD_ID) {
-    console.log("[BumpReminder] DISBOARD message detected:");
-    console.log("  Guild:", message.guild?.id ?? "DM");
-    console.log("  Embeds:", message.embeds.length);
+    // console.log("[BumpReminder] DISBOARD message detected:");
+    // console.log("  Guild:", message.guild?.id ?? "DM");
+    // console.log("  Embeds:", message.embeds.length);
     if (message.embeds[0]) {
-      console.log("  Embed description:", message.embeds[0].description);
+      // console.log("  Embed description:", message.embeds[0].description);
     }
   }
 
@@ -73,16 +74,16 @@ async function handleMessage(message) {
   const embed = message.embeds[0];
   const isBumpSuccess = embed.description?.includes("Bump done");
 
-  console.log("[BumpReminder] isBumpSuccess:", isBumpSuccess);
+  // console.log("[BumpReminder] isBumpSuccess:", isBumpSuccess);
 
   if (!isBumpSuccess) return;
 
   const config = guildConfig.get(message.guild.id);
 
-  console.log("[BumpReminder] Guild config:", config);
+  // console.log("[BumpReminder] Guild config:", config);
 
   if (!config) {
-    console.log(
+    logger.warn(
       "[BumpReminder] No config found for guild",
       message.guild.id,
       "— run /setup-bump set first."
@@ -96,7 +97,7 @@ async function handleMessage(message) {
   // Send confirmation
   const channel = message.guild.channels.cache.get(config.channelId);
 
-  console.log("[BumpReminder] Sending to channel:", config.channelId, "— found:", !!channel);
+  // logger.info("[BumpReminder] Sending to channel:", config.channelId, "— found:", !!channel);
 
   if (!channel) return;
 
@@ -111,7 +112,7 @@ async function handleMessage(message) {
         },
       ],
     })
-    .catch((err) => console.error("[BumpReminder] Failed to send confirmation:", err));
+    .catch((err) => logger.error("[BumpReminder] Failed to send confirmation:", err));
 
   // Schedule reminder
   config.timer = setTimeout(async () => {
@@ -128,7 +129,7 @@ async function handleMessage(message) {
           },
         ],
       })
-      .catch((err) => console.error("[BumpReminder] Failed to send reminder:", err));
+      .catch((err) => logger.error("[BumpReminder] Failed to send reminder:", err));
 
     config.timer = null;
   }, BUMP_COOLDOWN);

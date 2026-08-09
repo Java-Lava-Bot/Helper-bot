@@ -86,7 +86,7 @@ async function handleMessage(message) {
     logger.warn(
       "[BumpReminder] No config found for guild",
       message.guild.id,
-      "— run /setup-bump set first."
+      "— run /bump-reminder setup first."
     );
     return;
   }

@@ -11,8 +11,15 @@
     "cooldowns",
     "DISBOARD",
     "discordbotlist",
+    "dotenv",
+    "eslintcache",
     "guildevents",
     "jlhelper",
+    "jscoverage",
+    "jspm",
+    "nuxt",
+    "Phanbh",
+    "Phills",
     "topgg"
   ]
 }

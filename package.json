@@ -30,14 +30,14 @@
     "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.9.2",
+    "mongoose": "^9.9.3",
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.10",
-    "eslint": "^10.8.1",
-    "globals": "^17.9.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.9.0",
+    "globals": "^17.11.0",
     "prettier": "^3.9.6",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

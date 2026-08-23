@@ -41,9 +41,14 @@ client.helpers = { checkPermissions };
 module.exports = client;
 
 const { loadConfig, handleMessage } = require("./events/notifications/bumpReminder");
+const {
+  loadConfig: loadVoteConfig,
+  handleMessage: handleVoteMessage,
+} = require("./events/notifications/voteReminder");
 
 client.on("messageCreate", (message) => {
   handleMessage(message);
+  handleVoteMessage(message);
 });
 
 async function InteractionHandler(interaction, type) {
@@ -176,6 +181,7 @@ client.helpers.InteractionHandler = InteractionHandler;
     logger.info(
       `Logged in as ${client.user?.tag ?? "unknown user"}, please wait until terminal says Java Lava Helper is ready.`
     );
+    await loadVoteConfig(client);
   } catch (error) {
     logger.error("An error occurred during startup/login", error);
   }

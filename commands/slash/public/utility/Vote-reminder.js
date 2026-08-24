@@ -11,7 +11,7 @@ const {
   setupVoteReminder,
   removeVoteReminder,
   getConfig,
-} = require("../../../../events/notifications/voteReminder");
+} = require("../../../../events/notifications/vote-Reminder");
 
 module.exports = {
   data: new SlashCommandBuilder()

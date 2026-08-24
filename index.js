@@ -44,7 +44,7 @@ const { loadConfig, handleMessage } = require("./events/notifications/bumpRemind
 const {
   loadConfig: loadVoteConfig,
   handleMessage: handleVoteMessage,
-} = require("./events/notifications/voteReminder");
+} = require("./events/notifications/VoteReminder");
 
 client.on("messageCreate", (message) => {
   handleMessage(message);
